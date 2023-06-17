@@ -6,33 +6,25 @@ using Timer = System.Timers.Timer;
 namespace KillTheFly.Server.Services;
 public class GameService
 {
-    const int TIC_MILISECONDS = 200;
+    const int TIC_MILISECONDS = 1000;
     public int GameTime { get; set; }
     public DateTime GameStart { get; set; }
 
     private Timer timer;
-    private Dictionary<string, string> players;
+    private Dictionary<string, string> playerGuidMap;
     private MapService mapService;
 
-    public MapSnapshot GetFullMap()
+    public MapSnapshot GetPlayerMap(string playerGuid)
     {
+        var playerMapGuid = playerGuidMap[playerGuid];
         return new MapSnapshot
         {
             Foes = mapService.GetFoesNumber(),
             GameTime = GameTime,
             MilisecondsPast = (int)(DateTime.Now - GameStart).TotalMilliseconds,
-            Map = mapService.GetFullMap()
-        };
-    }
-    public MapSnapshot GetPlayerMap(string guidPlayer)
-    {
-        var guidPlayerMap = players[guidPlayer];
-        return new MapSnapshot
-        {
-            Foes = mapService.GetFoesNumber(),
-            GameTime = GameTime,
-            MilisecondsPast = (int)(DateTime.Now - GameStart).TotalMilliseconds,
-            Map = mapService.GetPlayerMap(guidPlayerMap)
+            Map = mapService.GetPlayerMap(playerMapGuid),
+            Score = mapService.GetPlayerScore(playerMapGuid),
+            TotalKills = mapService.GetTotalKills()
         };
     }
 
@@ -40,37 +32,38 @@ public class GameService
     {
         timer = new Timer(TIC_MILISECONDS);
         timer.Elapsed += Timer_Elapsed;
-        players = new Dictionary<string, string>();
+        playerGuidMap = new Dictionary<string, string>();
         mapService = new MapService();
+        Enumerable.Range(0,4).ToList().ForEach(_ => mapService.AddFly());
     }
 
 
-    public void PlayerAction(string playerToken, int? movement = null)
+    public void MovePLayer(string playerGuid, Directions? direction = null)
     {
-        if (!players.ContainsKey(playerToken))
+        if (!playerGuidMap.ContainsKey(playerGuid))
         {
-            AddPlayer(playerToken);
+            AddPlayer(playerGuid);
         }
-        if (movement.HasValue)
+        if (direction.HasValue)
         {
-            ExecuteMove(playerToken, movement.Value);
+            ExecuteMove(playerGuid, direction.Value);
         }
     }
 
-    private void ExecuteMove(string guidPlayer, int movement)
+    private void ExecuteMove(string playerGuid, Directions direction)
     {
-        var guidPlayerMap = players[guidPlayer];
-        mapService.MovePlayerMap(guidPlayerMap, movement);
+        var playerMapGuid = playerGuidMap[playerGuid];
+        mapService.MoveEntity(playerMapGuid, direction);
     }
 
     private void AddPlayer(string playerGuid)
     {
-        if (players.Count == 0)
+        if (playerGuidMap.Count == 0)
         {
             Start();
         }
         var mapGuid = Guid.NewGuid().ToString();
-        players.Add(playerGuid, mapGuid);
+        playerGuidMap.Add(playerGuid, mapGuid);
         mapService.AddPlayer(mapGuid);
     }
 
@@ -88,9 +81,17 @@ public class GameService
     private void Timer_Elapsed(object? sender, ElapsedEventArgs e)
     {
         GameTime++;
+        if (GameTime % 3 == 0)
+        {
+            mapService.MoveFlies();
+        }
         if (GameTime % 50 == 0)
         {
             mapService.AddFly();
+        }
+        if(GameTime % 1000 == 0)
+        {
+            mapService.DropOffline();
         }
     }
 }

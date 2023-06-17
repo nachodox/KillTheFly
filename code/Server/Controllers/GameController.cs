@@ -1,4 +1,5 @@
 ﻿using KillTheFly.Server.Services;
+using KillTheFly.Shared;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KillTheFly.Server.Controllers;
@@ -19,25 +20,15 @@ public class GameController : ControllerBase
     [HttpPost("Register/{playerGuid}")]
     public ActionResult Register(string playerGuid)
     {
-        _gameService.PlayerAction(playerGuid);
+        _gameService.MovePLayer(playerGuid);
         return Ok();
     }
 
-    [HttpPost("Move/{playerGuid}/{movement}")]
-    public ActionResult Move(string playerGuid, int movement)
+    [HttpPost("Move/{playerGuid}/{direction}")]
+    public ActionResult Move(string playerGuid, Directions direction)
     {
-        _gameService.PlayerAction(playerGuid, movement);
+        _gameService.MovePLayer(playerGuid, direction);
         return Ok();
-    }
-    [HttpGet("FullMap")]
-    public IActionResult FullMap()
-    {
-        var fullMap = _gameService.GetFullMap();
-        var timer = fullMap.GameTime;
-        var miliseconds = fullMap.MilisecondsPast;
-        var map = fullMap.Map.ToArray();
-
-        return Ok(new { action = "action", timer, miliseconds, map });
     }
 
     [HttpGet("Map/{playerGuid}")]

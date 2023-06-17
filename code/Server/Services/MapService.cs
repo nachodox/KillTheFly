@@ -1,6 +1,7 @@
 ﻿using KillTheFly.Server.Controllers;
 using KillTheFly.Shared;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 namespace KillTheFly.Server.Services;
 
@@ -8,66 +9,89 @@ public class MapService
 {
     const int MAX_NUMBER_OF_FOES = 20;
     const int MAP_SIZE = 20;
-    readonly List<int> LEFT = new List<int> { 0, 3, 6 };
-    readonly List<int> TOP = new List<int> { 0, 1, 2 };
-    readonly List<int> RIGHT = new List<int> { 2, 5, 8 };
-    readonly List<int> BOTTOM = new List<int> { 6, 7, 8 };
 
-    private Dictionary<string, MapRepresentation> actors;
+    private Dictionary<string, GameEntity> actors;
+    private List<Kill> kills;
+    private List<Movement> movements;
     public MapService()
     {
-        actors = new Dictionary<string, MapRepresentation>();
+        actors = new Dictionary<string, GameEntity>();
+        kills = new List<Kill>();
+        movements = new List<Movement>();
     }
 
-    public IEnumerable<MapRepresentation> GetFullMap()
+    public IEnumerable<GameEntity> GetFullMap()
     {
         return actors.Select(actor => actor.Value);
     }
-    public void MovePlayerMap(string guidPlayer, int movement)
+    public void MoveEntity(string playerMapGuid, Directions direction)
     {
-        var player = actors[guidPlayer];
-        if(LEFT.Contains(movement) && player.X < 1 ||
-            TOP.Contains(movement) && player.Y < 1 ||
-            RIGHT.Contains(movement) && player.X >= MAP_SIZE - 1 ||
-            BOTTOM.Contains(movement) && player.Y >= MAP_SIZE - 1)
+        var entity = actors[playerMapGuid];
+        if(entity.IsPlayer)
+        {
+            entity.IsOnline = true;
+            entity.LastAccess = DateTime.Now;
+        }
+        if (Movement.LEFT.Contains(direction) && entity.X < 1 ||
+            Movement.UP.Contains(direction) && entity.Y < 1 ||
+            Movement.RIGHT.Contains(direction) && entity.X >= MAP_SIZE - 1 ||
+            Movement.DOWN.Contains(direction) && entity.Y >= MAP_SIZE - 1)
         {
             return;
         }
-        var neighbors = GetPlayerMap(guidPlayer);
-        var neighbor = neighbors.ElementAt(movement);
+        var movement = new Movement
+        {
+            Direction = direction,
+            Entity = entity,
+            MoveDate = DateTime.Now,
+            X = entity.X,
+            Y = entity.Y
+        };
+        movements.Add(movement);
+        var neighbors = GetPlayerMap(playerMapGuid);
+        var neighbor = neighbors.ElementAt((int)direction);
         if(neighbor.IsPlayer)
         {
             return;
         }
         if(neighbor.Guid?.Length > 0)
         {
+            if(!entity.IsPlayer)
+            {
+                return;
+            }
+            kills.Add(new Kill(neighbor, movement));
             actors.Remove(neighbor.Guid);
+            return;
         }
-        if (LEFT.Contains(movement))
+        if (Movement.LEFT.Contains(direction))
         {
-            player.X--;
+            entity.X--;
         }
-        if(TOP.Contains(movement))
+        if(Movement.UP.Contains(direction))
         {
-            player.Y--;
+            entity.Y--;
         }
-        if(RIGHT.Contains(movement))
+        if(Movement.RIGHT.Contains(direction))
         {
-            player.X++;
+            entity.X++;
         }
-        if(BOTTOM.Contains(movement))
+        if(Movement.DOWN.Contains(direction))
         {
-            player.Y++;
+            entity.Y++;
         }
     }
     public int GetFoesNumber()
     {
         return actors.Count(actor => !actor.Value.IsPlayer);
     }
-    public IEnumerable<MapRepresentation> GetPlayerMap(string guidPlayer)
+    public int GetTotalKills() => kills.Count;
+    public int GetPlayerScore(string playerMapGuid) => kills.Where(kill => kill?.KillerMovement?.Entity?.Guid == playerMapGuid).Count();
+    
+    public IEnumerable<GameEntity> GetPlayerMap(string playerMapGuid)
     {
-        var player = actors[guidPlayer];
-        var closeSpaces = new List<MapRepresentation>();
+        var player = actors[playerMapGuid];
+        var closeSpaces = new List<GameEntity>();
         for(int  j = -1; j <= 1; j++)
         {
             var y = player.Y + j;
@@ -77,7 +101,17 @@ public class MapService
                 var neighbor = actors
                     .Select(keyValue => keyValue.Value)
                     .FirstOrDefault(actor => actor.X == x && actor.Y == y);
-                closeSpaces.Add(neighbor ?? MapRepresentation.EmptySpace(x, y));
+                var emptyChar = x >= 0 && x < MAP_SIZE && y >= 0 && y < MAP_SIZE ? 'F' : 'W';
+                if(emptyChar == 'F' && 
+                    kills.Any(kill => 
+                        kill.EventDate > DateTime.Now.AddSeconds(-10) && 
+                        kill.Victim.X == x && 
+                        kill.Victim.Y == y))
+                {
+                    emptyChar = 'D';
+                }
+                var emptyEntity = GameEntity.EmptySpace(x, y, emptyChar);
+                closeSpaces.Add(neighbor ?? emptyEntity);
             }
         }
         return closeSpaces;
@@ -89,7 +123,7 @@ public class MapService
             return;
         }
         var (x, y) = GetRandomEmptyPoint();
-        var actorRepresentation = new MapRepresentation
+        var actorRepresentation = new GameEntity
         {
             X = x,
             Y = y,
@@ -98,6 +132,24 @@ public class MapService
             IsPlayer = isPlayer
         };
         actors.Add(guid, actorRepresentation);
+    }
+    public void DropOffline()
+    {
+        foreach(var player in actors.Values.Where(actor => actor.IsPlayer && actor.LastAccess < DateTime.Now.AddMinutes(3)))
+        {
+            player.IsOnline = false;
+        }
+    }
+    public void MoveFlies()
+    {
+        var players = actors.Values.Where(actor => actor.IsPlayer && actor.IsOnline);
+        var flies = actors.Values.Where(actor => !actor.IsPlayer);
+        var fliesToMove = flies.Where(fly => players.Any(player => 
+            Math.Abs(player.X - fly.X) <= 2 && Math.Abs(player.Y - fly.Y) <= 2));
+        foreach(var fly in fliesToMove)
+        {
+            MoveEntity(fly.Guid, (Directions)Random.Shared.Next(0, 8));
+        }
     }
     public void AddFly()
     {
