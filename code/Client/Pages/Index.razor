@@ -5,7 +5,7 @@
 @inject ILocalStorageService _localstorage;
 
 <PageTitle>KTF</PageTitle>
-
+<img class="banner-photo" src="banner.png"/>
 
 @if(MapSnapshot is null)
 {
@@ -13,26 +13,60 @@
 }
 else
 {
-    <h2>Game time: @MapSnapshot.GameTime | Seconds: @(MapSnapshot.MilisecondsPast / 1000) | X: @(MapSnapshot.Map.ElementAt(4).X) | Y: @(MapSnapshot.Map.ElementAt(4).Y) | Foes: @MapSnapshot.Foes</h2>
+    <div class="score-tray">
+        <div class="score-icon">
+            <image src="flycatcher-icon.svg" width="30" height="30" />
+        </div>
+        <div class="score-icon">
+            @MapSnapshot.Score
+        </div>
+        <div class="score-icon">
+            <image src="fly-icon.svg" width="30" height="30" />
+        </div>
+        <div class="score-icon">
+            @MapSnapshot.Foes
+        </div>
+        <div class="score-icon">
+            <image src="dead-fly-icon.svg" width="30" height="30" />
+        </div>
+        <div class="score-icon">
+            @MapSnapshot.TotalKills
+        </div>
+    </div>
     <div class="grid-container">
         @for(int i = 0; i < MapSnapshot.Map.Count(); i++)
         {
-            var temp = i;
-            <div class="grid-item" id="display" @onclick="() => Move(temp)">
-                @switch(MapSnapshot.Map.ElementAt(i).Avatar)
+            var representation = MapSnapshot.Map.ElementAt(i);
+            var direction = (Directions)i;
+            var style = "background-size: cover;";
+            if (representation.Avatar != 'W')
+            {
+                var base64String = $"""data:image/png;base64,{ImageHelper.GetImage($"{representation.X}-{representation.Y}")}""";
+                style += $"background-image: url({base64String});";
+            }
+            <div class="grid-item" id="display" style="@style" @onclick="() => Move(direction)">
+                @switch(representation.Avatar)
                 {
                     case 'Z':
                         <div class="spinner">
-                            <svg class="spinner-icon" viewBox="-10 -10 70 70" width="100" height="100">
+                            <svg class="spinner-icon" viewBox="-10 -10 70 70">
                                 <image xlink:href="fly-icon.svg" width="40" height="40" />
                             </svg>
                         </div>
                         break;
-                    case 'E':
+                    case 'D':
+                        <svg viewBox="-10 -10 70 70">
+                            <image xlink:href="dead-fly-icon.svg" width="40" height="40" />
+                        </svg>
+                        break;
+                    case 'F':
                         <p/>
                         break;
+                    case 'W':
+                        <div class="map-wall"/>
+                        break;
                     default:
-                        <svg viewBox="-10 -10 70 70" width="100" height="100">
+                        <svg viewBox="-10 -10 70 70">
                             <image xlink:href="flycatcher-icon.svg" width="40" height="40" />
                         </svg>
                         break;
@@ -40,9 +74,8 @@ else
             </div>
         }
     </div>
+    <p>(X, Y): (@(MapSnapshot.Map.ElementAt(4).X), @(MapSnapshot.Map.ElementAt(4).Y))</p>
 }
-<h2>Max score: 10 | score: 2</h2>
-<h2>UserToken: @PlayerGuid</h2>
 
 
 @code {
@@ -51,14 +84,14 @@ else
     public string? PlayerGuid { get; set; }
     [Parameter]
     public MapSnapshot? MapSnapshot { get; set; }
-    private System.Timers.Timer timer;
+    private System.Timers.Timer? timer;
 
     protected override async Task OnInitializedAsync()
     {
         if (await _localstorage.ContainKeyAsync(PLAYER_GUID_STORAGE_KEY))
         {
             PlayerGuid = await _localstorage.GetItemAsStringAsync(PLAYER_GUID_STORAGE_KEY);
-        }
+        } 
         else
         {
             PlayerGuid = Guid.NewGuid().ToString();
@@ -66,20 +99,24 @@ else
         }
 
         await Http.PostAsJsonAsync<object>($"Game/Register/{PlayerGuid}", new { });
-        timer = new System.Timers.Timer(500);
+        timer = new System.Timers.Timer(1200);
         timer.Elapsed += UpdateMap;
         timer.Start();
     }
-
-    public async void Move(int movement)
+    private async Task RefreshSnapshot()
     {
-        await Http.PostAsJsonAsync<object>($"Game/Move/{PlayerGuid}/{movement}", new { });
-        
+        MapSnapshot = await Http.GetFromJsonAsync<MapSnapshot>($"Game/Map/{PlayerGuid}");
+        StateHasChanged();
+    }
+
+    public async Task Move(Directions direction)
+    {
+        await Http.PostAsJsonAsync<object>($"Game/Move/{PlayerGuid}/{direction}", new { });
+        await RefreshSnapshot();
     }
 
     public async void UpdateMap(object? sender, ElapsedEventArgs e)
     {
-        MapSnapshot = await Http.GetFromJsonAsync<MapSnapshot>($"Game/Map/{PlayerGuid}");
-        StateHasChanged();
+        await RefreshSnapshot();
     }
 }
