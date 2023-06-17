@@ -8,9 +8,12 @@ namespace KillTheFly.Shared
 {
     public class MapSnapshot
     {
+        public int Score { get; set; }
+        public int TotalKills { get; set; }
         public int Foes { get; set; }
+        
         public int GameTime { get; set; }
         public int MilisecondsPast { get; set; }
-        public IEnumerable<MapRepresentation> Map { get; set; } = new List<MapRepresentation>();
+        public IEnumerable<GameEntity> Map { get; set; } = new List<GameEntity>();
     }
 }
