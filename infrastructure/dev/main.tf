@@ -140,6 +140,21 @@ data "azurerm_public_ip" "ktf-ip-data" {
   resource_group_name = azurerm_resource_group.ktf-rg.name
 }
 
+resource "azurerm_dns_zone" "zone" {
+  name = (
+    "matamosca.cl"
+  )
+  resource_group_name = azurerm_resource_group.ktf-rg.name
+}
+
+resource "azurerm_dns_a_record" "record" {
+  name                = "@"
+  resource_group_name = azurerm_resource_group.ktf-rg.name
+  zone_name           = azurerm_dns_zone.zone.name
+  ttl                 = 3600
+  records             = [azurerm_public_ip.ktf-ip.ip_address]
+}
+
 output "public_ip_address" {
   value = "${azurerm_linux_virtual_machine.ktf-vm.name}: ${data.azurerm_public_ip.ktf-ip-data.ip_address}"
 }

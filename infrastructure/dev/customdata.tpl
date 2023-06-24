@@ -16,7 +16,7 @@ sudo apt install -y nginx
 
 echo "server {" | sudo tee -a /etc/nginx/conf.d/my-nginx.conf
 echo "    listen 80;" | sudo tee -a /etc/nginx/conf.d/my-nginx.conf
-echo "    server_name *;  # Replace with your domain name or server IP address" | sudo tee -a /etc/nginx/conf.d/my-nginx.conf
+echo "    server_name matamosca.cl;  # Replace with your domain name or server IP address" | sudo tee -a /etc/nginx/conf.d/my-nginx.conf
 echo "" | sudo tee -a /etc/nginx/conf.d/my-nginx.conf
 echo "    location / {" | sudo tee -a /etc/nginx/conf.d/my-nginx.conf
 echo "        # Add your desired configuration here" | sudo tee -a /etc/nginx/conf.d/my-nginx.conf
@@ -28,3 +28,5 @@ echo "        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;" | s
 echo "        proxy_set_header X-Forwarded-Proto \$scheme;" | sudo tee -a /etc/nginx/conf.d/my-nginx.conf
 echo "    }" | sudo tee -a /etc/nginx/conf.d/my-nginx.conf
 echo "}" | sudo tee -a /etc/nginx/conf.d/my-nginx.conf
+
+sudo service nginx reload
