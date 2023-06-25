@@ -20,10 +20,27 @@ namespace KillTheFly.Shared
     }
     public class Movement
     {
-        public static readonly List<Directions> LEFT = new List<Directions> { Directions.UpLeft, Directions.Left, Directions.DownLeft};
-        public static readonly List<Directions> UP = new List<Directions> { Directions.UpLeft, Directions.Up, Directions.UpRight };
-        public static readonly List<Directions> RIGHT = new List<Directions> { Directions.UpRight, Directions.Right, Directions.DownRight };
-        public static readonly List<Directions> DOWN = new List<Directions> { Directions.DownLeft, Directions.Down, Directions.DownRight};
+        public static readonly Dictionary<Directions, string> MusicalNotes = new(){
+            {Directions.UpLeft, "C4"},
+            {Directions.Up, "D4"},
+            {Directions.UpRight, "E4"},
+            {Directions.Left, "F4"},
+            {Directions.Center, "Plop"},
+            {Directions.Right, "G4"},
+            {Directions.DownLeft, "A4"},
+            {Directions.Down, "B4"},
+            {Directions.DownRight, "C5"}
+        };
+        public static readonly List<Directions> LEFT = new() { 
+            Directions.UpLeft, Directions.Left, Directions.DownLeft
+        };
+        public static readonly List<Directions> UP = new() { 
+            Directions.UpLeft, Directions.Up, Directions.UpRight 
+        };
+        public static readonly List<Directions> RIGHT = new() { 
+            Directions.UpRight, Directions.Right, Directions.DownRight };
+        public static readonly List<Directions> DOWN = new() { 
+            Directions.DownLeft, Directions.Down, Directions.DownRight};
         public Directions Direction { get; set; }
         public DateTime MoveDate { get; set; }
         public GameEntity? Entity { get; set; }

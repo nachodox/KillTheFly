@@ -1,42 +1,23 @@
 ﻿@page "/"
 @using System.Timers;
-@using KillTheFly.Shared;
 @inject HttpClient Http
 @inject ILocalStorageService _localstorage;
+@inject IJSRuntime JSRuntime
 
-<PageTitle>KTF</PageTitle>
+<PageTitle>Matamosca 💩</PageTitle>
 <img class="banner-photo" src="banner.png"/>
 
-@if(MapSnapshot is null)
+@if(Snapshot is null)
 {
     <h2>No game in course</h2>
 }
 else
 {
-    <div class="score-tray">
-        <div class="score-icon">
-            <image src="fly-swatter-icon.png" width="30" height="30" />
-        </div>
-        <div class="score-icon">
-            @MapSnapshot.Score
-        </div>
-        <div class="score-icon">
-            <image src="fly-icon.png" width="30" height="30" />
-        </div>
-        <div class="score-icon">
-            @MapSnapshot.Foes
-        </div>
-        <div class="score-icon">
-            <image src="dead-fly-icon.png" width="30" height="30" />
-        </div>
-        <div class="score-icon">
-            @MapSnapshot.TotalKills
-        </div>
-    </div>
+    <ScoreTray Board=@Snapshot.Board/>
     <div class="grid-container">
-        @for(int i = 0; i < MapSnapshot.Map.Count(); i++)
+        @for(int i = 0; i < Snapshot.Map.Count(); i++)
         {
-            var representation = MapSnapshot.Map.ElementAt(i);
+            var representation = Snapshot.Map.ElementAt(i);
             var direction = (Directions)i;
             var style = "background-size: cover;";
             if (representation.Avatar != 'W')
@@ -48,9 +29,7 @@ else
                 @if(i == 4)
                 {
                     var className = $"{Directions.Center} something" + (IsAnimating ? $" animate-{LastDirection}": "");
-                    @* <image class="@className" src="fly-swatter-icon.png" /> *@
                     <img class="@className" src="fly-swatter-icon.png" />
-                    @* <image class="something" src="fly-swatter-icon.png" /> *@
                 }
                 @switch(representation.Avatar)
                 {
@@ -72,7 +51,7 @@ else
             </div>
         }
     </div>
-    <p>(X, Y): (@(MapSnapshot.Map.ElementAt(4).X), @(MapSnapshot.Map.ElementAt(4).Y))</p>
+    <p>(X, Y): (@(Snapshot.Map.ElementAt(4).X), @(Snapshot.Map.ElementAt(4).Y))</p>
 }
 
 
@@ -81,7 +60,7 @@ else
     [Parameter]
     public string? PlayerGuid { get; set; }
     [Parameter]
-    public MapSnapshot? MapSnapshot { get; set; }
+    public GameSnapshot? Snapshot { get; set; }
     private System.Timers.Timer? timer;
 
     private bool IsLoading {get; set;} = true;
@@ -107,7 +86,7 @@ else
     }
     private async Task RefreshSnapshot()
     {
-        MapSnapshot = await Http.GetFromJsonAsync<MapSnapshot>($"Game/Map/{PlayerGuid}");
+        Snapshot = await Http.GetFromJsonAsync<GameSnapshot>($"Game/Map/{PlayerGuid}");
         IsLoading = false;
         IsAnimating = false;
         StateHasChanged();
@@ -122,6 +101,7 @@ else
         IsLoading = true;
         IsAnimating = true;
         LastDirection = direction;
+        await PlaySound(direction);
         await Http.PostAsJsonAsync<object>($"Game/Move/{PlayerGuid}/{direction}", new { });
         await RefreshSnapshot();
     }
@@ -129,5 +109,11 @@ else
     public async void UpdateMap(object? sender, ElapsedEventArgs e)
     {
         await RefreshSnapshot();
+    }
+
+    private async Task PlaySound(Directions direction)
+    {
+        var track = Movement.MusicalNotes[direction];
+        await JSRuntime.InvokeVoidAsync("playSound", $"sound/{track}.mp3");
     }
 }
