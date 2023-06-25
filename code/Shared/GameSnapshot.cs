@@ -6,14 +6,9 @@ using System.Threading.Tasks;
 
 namespace KillTheFly.Shared
 {
-    public class MapSnapshot
+    public class GameSnapshot
     {
-        public int Score { get; set; }
-        public int TotalKills { get; set; }
-        public int Foes { get; set; }
-        
-        public int GameTime { get; set; }
-        public int MilisecondsPast { get; set; }
+        public ScoreBoard? Board { get; set; }
         public IEnumerable<GameEntity> Map { get; set; } = new List<GameEntity>();
     }
 }

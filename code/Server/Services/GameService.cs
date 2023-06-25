@@ -14,17 +14,21 @@ public class GameService
     private Dictionary<string, string> playerGuidMap;
     private MapService mapService;
 
-    public MapSnapshot GetPlayerMap(string playerGuid)
+    public GameSnapshot GetPlayerMap(string playerGuid)
     {
         var playerMapGuid = playerGuidMap[playerGuid];
-        return new MapSnapshot
+        var scoreBoard = new ScoreBoard
         {
             Foes = mapService.GetFoesNumber(),
             GameTime = GameTime,
             MilisecondsPast = (int)(DateTime.Now - GameStart).TotalMilliseconds,
-            Map = mapService.GetPlayerMap(playerMapGuid),
             Score = mapService.GetPlayerScore(playerMapGuid),
             TotalKills = mapService.GetTotalKills()
+        };
+        return new GameSnapshot
+        {
+            Map = mapService.GetPlayerMap(playerMapGuid),
+            Board = scoreBoard
         };
     }
 
