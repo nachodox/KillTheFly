@@ -97,14 +97,14 @@ html, body {
     }
 
     100% {
-        transform: rotate(360deg);
+        transform: rotate(-360deg);
     }
 }
 
 /* swatter animation */
 .something {
-    width: 40%; 
-    height: 40%;
+    max-width: 40%; 
+    max-height: 40%;
 }
 
 .animate-UpLeft {
