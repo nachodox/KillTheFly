@@ -15,19 +15,19 @@ else
 {
     <div class="score-tray">
         <div class="score-icon">
-            <image src="flycatcher-icon.svg" width="30" height="30" />
+            <image src="fly-swatter-icon.png" width="30" height="30" />
         </div>
         <div class="score-icon">
             @MapSnapshot.Score
         </div>
         <div class="score-icon">
-            <image src="fly-icon.svg" width="30" height="30" />
+            <image src="fly-icon.png" width="30" height="30" />
         </div>
         <div class="score-icon">
             @MapSnapshot.Foes
         </div>
         <div class="score-icon">
-            <image src="dead-fly-icon.svg" width="30" height="30" />
+            <image src="dead-fly-icon.png" width="30" height="30" />
         </div>
         <div class="score-icon">
             @MapSnapshot.TotalKills
@@ -45,19 +45,20 @@ else
                 style += $"background-image: url({base64String});";
             }
             <div class="grid-item" id="display" style="@style" @onclick="() => Move(direction)">
+                @if(i == 4)
+                {
+                    var className = $"{Directions.Center} something" + (IsAnimating ? $" animate-{LastDirection}": "");
+                    @* <image class="@className" src="fly-swatter-icon.png" /> *@
+                    <img class="@className" src="fly-swatter-icon.png" />
+                    @* <image class="something" src="fly-swatter-icon.png" /> *@
+                }
                 @switch(representation.Avatar)
                 {
                     case 'Z':
-                        <div class="spinner">
-                            <svg class="spinner-icon" viewBox="-10 -10 70 70">
-                                <image xlink:href="fly-icon.svg" width="40" height="40" />
-                            </svg>
-                        </div>
+                        <img class="something" src="fly-icon.png"/>
                         break;
                     case 'D':
-                        <svg viewBox="-10 -10 70 70">
-                            <image xlink:href="dead-fly-icon.svg" width="40" height="40" />
-                        </svg>
+                        <img class="something"  src="dead-fly-icon.png"/>
                         break;
                     case 'F':
                         <p/>
@@ -66,9 +67,6 @@ else
                         <div class="map-wall"/>
                         break;
                     default:
-                        <svg viewBox="-10 -10 70 70">
-                            <image xlink:href="flycatcher-icon.svg" width="40" height="40" />
-                        </svg>
                         break;
                 }
             </div>
@@ -85,6 +83,10 @@ else
     [Parameter]
     public MapSnapshot? MapSnapshot { get; set; }
     private System.Timers.Timer? timer;
+
+    private bool IsLoading {get; set;} = true;
+    private bool IsAnimating {get; set;} = false;
+    private Directions LastDirection {get; set;} = Directions.Center;
 
     protected override async Task OnInitializedAsync()
     {
@@ -106,11 +108,20 @@ else
     private async Task RefreshSnapshot()
     {
         MapSnapshot = await Http.GetFromJsonAsync<MapSnapshot>($"Game/Map/{PlayerGuid}");
+        IsLoading = false;
+        IsAnimating = false;
         StateHasChanged();
     }
 
     public async Task Move(Directions direction)
     {
+        if(IsLoading)
+        {
+            return;
+        }
+        IsLoading = true;
+        IsAnimating = true;
+        LastDirection = direction;
         await Http.PostAsJsonAsync<object>($"Game/Move/{PlayerGuid}/{direction}", new { });
         await RefreshSnapshot();
     }

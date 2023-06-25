@@ -100,3 +100,134 @@ html, body {
         transform: rotate(360deg);
     }
 }
+
+/* swatter animation */
+.something {
+    width: 40%; 
+    height: 40%;
+}
+
+.animate-UpLeft {
+    animation-name: slide-UpLeft;
+    animation-duration: 100ms;
+    animation-timing-function: ease-out;
+    animation-fill-mode: forwards;
+}
+
+@keyframes slide-UpLeft {
+    0% {
+        transform: translate(0, 0);
+    }
+    100% {
+        transform: translate(-250%, -250%);
+    }
+  }
+  
+.animate-Up {
+    animation-name: slide-Up;
+    animation-duration: 100ms;
+    animation-timing-function: ease-out;
+    animation-fill-mode: forwards;
+}
+
+@keyframes slide-Up {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(-250%);
+    }
+}
+
+.animate-UpRight {
+    animation-name: slide-UpRight;
+    animation-duration: 100ms;
+    animation-timing-function: ease-out;
+    animation-fill-mode: forwards;
+}
+
+@keyframes slide-UpRight {
+    0% {
+        transform: translate(0, 0);
+    }
+    100% {
+        transform: translate(250%, -250%);
+    }
+}
+  
+.animate-Left {
+    animation-name: slide-Left;
+    animation-duration: 100ms;
+    animation-timing-function: ease-out;
+    animation-fill-mode: forwards;
+}
+
+@keyframes slide-Left {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-250%);
+    }
+}
+.animate-Right {
+    animation-name: slide-Right;
+    animation-duration: 100ms;
+    animation-timing-function: ease-out;
+    animation-fill-mode: forwards;
+}
+
+@keyframes slide-Right {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(250%);
+    }
+}
+.animate-DownLeft {
+    animation-name: slide-DownLeft;
+    animation-duration: 100ms;
+    animation-timing-function: ease-out;
+    animation-fill-mode: forwards;
+}
+
+@keyframes slide-DownLeft {
+    0% {
+        transform: translate(0, 0);
+    }
+    100% {
+        transform: translate(-250%, 250%);
+    }
+}
+.animate-Down {
+    animation-name: slide-Down;
+    animation-duration: 100ms;
+    animation-timing-function: ease-out;
+    animation-fill-mode: forwards;
+}
+
+@keyframes slide-Down {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(250%);
+    }
+}
+
+.animate-DownRight {
+    animation-name: slide-DownRight;
+    animation-duration: 100ms;
+    animation-timing-function: ease-out;
+    animation-fill-mode: forwards;
+}
+
+@keyframes slide-DownRight {
+    0% {
+        transform: translate(0, 0);
+    }
+    100% {
+        transform: translate(250%, 250%);
+    }
+}
