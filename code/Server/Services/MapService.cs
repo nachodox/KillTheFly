@@ -100,7 +100,7 @@ public class MapService
                 var x = player.X + i;
                 var neighbor = actors
                     .Select(keyValue => keyValue.Value)
-                    .FirstOrDefault(actor => actor.X == x && actor.Y == y);
+                    .FirstOrDefault(actor => actor.X == x && actor.Y == y && actor.Guid != playerMapGuid);
                 var emptyChar = x >= 0 && x < MAP_SIZE && y >= 0 && y < MAP_SIZE ? 'F' : 'W';
                 if(emptyChar == 'F' && 
                     kills.Any(kill => 
