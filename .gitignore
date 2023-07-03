@@ -1,5 +1,4 @@
 infrastructure/dev/.terraform.lock.hcl
-infrastructure/dev/terraform.tfstate
 infrastructure/dev/terraform.tfstate.backup
 infrastructure/dev/terraform.tfvars
-infrastructure/dev/.terraform/providers/
+infrastructure/dev/.terraform/

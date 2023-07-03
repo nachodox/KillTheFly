@@ -14,3 +14,11 @@ variable "git_pass" {
 variable "ktf_git_repository" {
   type = string
 }
+
+variable "ktf_db_username" {
+  type = string
+}
+
+variable "ktf_db_password" {
+  type = string
+}
