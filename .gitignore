@@ -1,6 +1,7 @@
 code/*/bin/
 code/*/obj/
 code/.vs
+code/Server/appsettings.Development.json
 
 infrastructure/dev/.terraform.lock.hcl
 infrastructure/dev/terraform.tfstate
