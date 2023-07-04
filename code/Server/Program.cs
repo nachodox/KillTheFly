@@ -1,9 +1,11 @@
 using KillTheFly.Server.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
 
 builder.Services.AddSingleton<GameService>();
 builder.Services.AddControllersWithViews();
@@ -12,6 +14,10 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "KillTheFly API", Version = "v1" });
 });
+
+var connectionString = builder.Configuration.GetSection("ConnectionStrings:Psql").Value;
+builder.Services.AddDbContext<KTFDatabaseContext>(options =>
+    options.UseNpgsql(connectionString), ServiceLifetime.Singleton);
 
 var app = builder.Build();
 

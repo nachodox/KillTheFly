@@ -13,18 +13,32 @@ public class MapService
     private Dictionary<string, GameEntity> actors;
     private List<Kill> kills;
     private List<Movement> movements;
-    public MapService()
+    private readonly KTFDatabaseContext _context;
+    public MapService(KTFDatabaseContext context)
     {
+        _context = context;
         actors = new Dictionary<string, GameEntity>();
+        foreach(var entity in _context.Entities.ToArray())
+        {
+            actors.Add(entity.Guid, entity);
+        }
         kills = new List<Kill>();
+        foreach(var kill in _context.Kills.ToArray())
+        {
+            kills.Add(kill);
+        }
         movements = new List<Movement>();
+        foreach(var movement in _context.Movements.ToArray())
+        {
+            movements.Add(movement);
+        }
     }
 
     public IEnumerable<GameEntity> GetFullMap()
     {
         return actors.Select(actor => actor.Value);
     }
-    public void MoveEntity(string playerMapGuid, Directions direction)
+    public async Task MoveEntity(string playerMapGuid, Directions direction)
     {
         var entity = actors[playerMapGuid];
         if(entity.IsPlayer)
@@ -41,17 +55,22 @@ public class MapService
         }
         var movement = new Movement
         {
+            Guid = Guid.NewGuid().ToString(),
             Direction = direction,
             Entity = entity,
             MoveDate = DateTime.Now,
-            X = entity.X,
-            Y = entity.Y
+            StartX = entity.X,
+            StartY = entity.Y,
+            EndX = entity.X,
+            EndY = entity.Y
         };
-        movements.Add(movement);
         var neighbors = GetPlayerMap(playerMapGuid);
         var neighbor = neighbors.ElementAt((int)direction);
         if(neighbor.IsPlayer)
         {
+            await _context.Movements.AddAsync(movement);
+            await _context.SaveChangesAsync();
+            movements.Add(movement);
             return;
         }
         if(neighbor.Guid?.Length > 0)
@@ -60,8 +79,13 @@ public class MapService
             {
                 return;
             }
-            kills.Add(new Kill(neighbor, movement));
+            await _context.Movements.AddAsync(movement);
+            movements.Add(movement);
+            var kill = new Kill(neighbor, movement);
+            kills.Add(kill);
+            await _context.Kills.AddAsync(kill);
             actors.Remove(neighbor.Guid);
+            await _context.SaveChangesAsync();
             return;
         }
         if (Movement.LEFT.Contains(direction))
@@ -80,6 +104,11 @@ public class MapService
         {
             entity.Y++;
         }
+        movement.EndX = entity.X;
+        movement.EndY = entity.Y;
+        await _context.Movements.AddAsync(movement);
+        movements.Add(movement);
+        await _context.SaveChangesAsync();
     }
     public int GetFoesNumber()
     {
@@ -90,6 +119,10 @@ public class MapService
     
     public IEnumerable<GameEntity> GetPlayerMap(string playerMapGuid)
     {
+        if(!actors.Keys.Contains(playerMapGuid))
+        {
+            return new List<GameEntity>();
+        }
         var player = actors[playerMapGuid];
         var closeSpaces = new List<GameEntity>();
         for(int  j = -1; j <= 1; j++)
@@ -116,7 +149,7 @@ public class MapService
         }
         return closeSpaces;
     }
-    private void AddActor(string guid, char avatar, bool isPlayer)
+    private async Task AddActor(string guid, char avatar, bool isPlayer)
     {
         if (actors.ContainsKey(guid))
         {
@@ -131,6 +164,11 @@ public class MapService
             Guid = guid,
             IsPlayer = isPlayer
         };
+        if(isPlayer)
+        {
+            await _context.Entities.AddAsync(actorRepresentation);
+            await _context.SaveChangesAsync();
+        }
         actors.Add(guid, actorRepresentation);
     }
     public void DropOffline()
@@ -140,7 +178,7 @@ public class MapService
             player.IsOnline = false;
         }
     }
-    public void MoveFlies()
+    public async Task MoveFlies()
     {
         var players = actors.Values.Where(actor => actor.IsPlayer && actor.IsOnline);
         var flies = actors.Values.Where(actor => !actor.IsPlayer);
@@ -148,7 +186,7 @@ public class MapService
             Math.Abs(player.X - fly.X) <= 2 && Math.Abs(player.Y - fly.Y) <= 2));
         foreach(var fly in fliesToMove)
         {
-            MoveEntity(fly.Guid, (Directions)Random.Shared.Next(0, 8));
+            await MoveEntity(fly.Guid, (Directions)Random.Shared.Next(0, 8));
         }
     }
     public void AddFly()

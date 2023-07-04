@@ -18,16 +18,16 @@ public class GameController : ControllerBase
     }
 
     [HttpPost("Register/{playerGuid}")]
-    public ActionResult Register(string playerGuid)
+    public async Task<ActionResult> Register(string playerGuid)
     {
-        _gameService.MovePLayer(playerGuid);
+        await _gameService.MovePLayer(playerGuid);
         return Ok();
     }
 
     [HttpPost("Move/{playerGuid}/{direction}")]
-    public ActionResult Move(string playerGuid, Directions direction)
+    public async Task<ActionResult> MoveAsync(string playerGuid, Directions direction)
     {
-        _gameService.MovePLayer(playerGuid, direction);
+        await _gameService.MovePLayer(playerGuid, direction);
         return Ok();
     }
 

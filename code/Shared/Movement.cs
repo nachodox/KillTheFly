@@ -44,7 +44,10 @@ namespace KillTheFly.Shared
         public Directions Direction { get; set; }
         public DateTime MoveDate { get; set; }
         public GameEntity? Entity { get; set; }
-        public int X { get; set; }
-        public int Y { get; set; }
+        public int StartX { get; set; }
+        public int StartY { get; set; }
+        public int EndX { get; set; }
+        public int EndY { get; set; }
+        public string Guid { get; set; } = string.Empty;
     }
 }

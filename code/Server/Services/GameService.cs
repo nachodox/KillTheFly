@@ -11,64 +11,55 @@ public class GameService
     public DateTime GameStart { get; set; }
 
     private Timer timer;
-    private Dictionary<string, string> playerGuidMap;
+
     private MapService mapService;
 
     public GameSnapshot GetPlayerMap(string playerGuid)
     {
-        var playerMapGuid = playerGuidMap[playerGuid];
         var scoreBoard = new ScoreBoard
         {
             Foes = mapService.GetFoesNumber(),
             GameTime = GameTime,
             MilisecondsPast = (int)(DateTime.Now - GameStart).TotalMilliseconds,
-            Score = mapService.GetPlayerScore(playerMapGuid),
+            Score = mapService.GetPlayerScore(playerGuid),
             TotalKills = mapService.GetTotalKills()
         };
         return new GameSnapshot
         {
-            Map = mapService.GetPlayerMap(playerMapGuid),
+            Map = mapService.GetPlayerMap(playerGuid),
             Board = scoreBoard
         };
     }
-
-    public GameService()
+    public GameService(KTFDatabaseContext context)
     {
         timer = new Timer(TIC_MILISECONDS);
         timer.Elapsed += Timer_Elapsed;
-        playerGuidMap = new Dictionary<string, string>();
-        mapService = new MapService();
+        mapService = new MapService(context);
         Enumerable.Range(0,4).ToList().ForEach(_ => mapService.AddFly());
     }
 
 
-    public void MovePLayer(string playerGuid, Directions? direction = null)
+    public async Task MovePLayer(string playerGuid, Directions? direction = null)
     {
-        if (!playerGuidMap.ContainsKey(playerGuid))
-        {
-            AddPlayer(playerGuid);
-        }
+        AddPlayer(playerGuid);
         if (direction.HasValue)
         {
-            ExecuteMove(playerGuid, direction.Value);
+            await ExecuteMove(playerGuid, direction.Value);
         }
     }
 
-    private void ExecuteMove(string playerGuid, Directions direction)
+    private async Task ExecuteMove(string playerGuid, Directions direction)
     {
-        var playerMapGuid = playerGuidMap[playerGuid];
-        mapService.MoveEntity(playerMapGuid, direction);
+        await mapService.MoveEntity(playerGuid, direction);
     }
 
     private void AddPlayer(string playerGuid)
     {
-        if (playerGuidMap.Count == 0)
+        if (!timer.Enabled)
         {
             Start();
         }
-        var mapGuid = Guid.NewGuid().ToString();
-        playerGuidMap.Add(playerGuid, mapGuid);
-        mapService.AddPlayer(mapGuid);
+        mapService.AddPlayer(playerGuid);
     }
 
     private void Start()
