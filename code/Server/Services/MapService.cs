@@ -1,5 +1,6 @@
 ﻿using KillTheFly.Server.Controllers;
 using KillTheFly.Server.Models;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
@@ -69,9 +70,18 @@ public class MapService
         var neighbor = neighbors.ElementAt((int)direction);
         if(neighbor.IsPlayer)
         {
-            await _context.Movements.AddAsync(movement);
-            await _context.SaveChangesAsync();
-            movements.Add(movement);
+            try
+            {
+                await _context.Movements.AddAsync(movement);
+                await _context.SaveChangesAsync();
+                movements.Add(movement);
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                Console.WriteLine(ex);
+                ex.Entries.Single().Reload();
+                //await _context.SaveChangesAsync();
+            }
             return;
         }
         if(neighbor.GuidClient?.Length > 0)
@@ -80,17 +90,26 @@ public class MapService
             {
                 return;
             }
-            await _context.Movements.AddAsync(movement);
             movements.Add(movement);
             var kill = new Kill()
             {
                 KillerMovement = movement,
                 Victim = neighbor
             };
-            kills.Add(kill);
-            await _context.Kills.AddAsync(kill);
-            actors.Remove(neighbor.GuidClient);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.Movements.AddAsync(movement);
+                await _context.Kills.AddAsync(kill);
+                await _context.SaveChangesAsync();
+                kills.Add(kill);
+                actors.Remove(neighbor.GuidClient);
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                Console.WriteLine(ex);
+                ex.Entries.Single().Reload();
+                //await _context.SaveChangesAsync();
+            }
             return;
         }
         if (Shared.Movement.LEFT.Contains(direction))
@@ -111,9 +130,18 @@ public class MapService
         }
         movement.EndX = entity.X;
         movement.EndY = entity.Y;
-        await _context.Movements.AddAsync(movement);
-        movements.Add(movement);
-        await _context.SaveChangesAsync();
+        try
+        {
+            await _context.Movements.AddAsync(movement);
+            await _context.SaveChangesAsync();
+            movements.Add(movement);
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            Console.WriteLine(ex);
+            ex.Entries.Single().Reload();
+            //await _context.SaveChangesAsync();
+        }
     }
     public int GetFoesNumber()
     {
@@ -126,7 +154,7 @@ public class MapService
         {
             return 0;
         }
-        return actors[guidClient].Movements.Where(movement => movement.Kill is not null).Count();
+        return actors[guidClient].Movements.Where(movement => movement.Kill != null).Count();
     }
     
     public IEnumerable<GameEntity> GetPlayerMap(string guidClient)
@@ -149,9 +177,9 @@ public class MapService
                 var emptyChar = x >= 0 && x < MAP_SIZE && y >= 0 && y < MAP_SIZE ? 'F' : 'W';
                 if(emptyChar == 'F' && 
                     kills.Any(kill => 
-                        kill.Timestamp > DateTime.Now.AddSeconds(-10) && 
-                        kill.Victim.X == x && 
-                        kill.Victim.Y == y))
+                        kill?.Timestamp > DateTime.Now.AddSeconds(-10) && 
+                        kill?.Victim?.X == x && 
+                        kill?.Victim?.Y == y))
                 {
                     emptyChar = 'D';
                 }
@@ -178,9 +206,22 @@ public class MapService
             GuidClient = guid,
             IsPlayer = isPlayer
         };
-        await _context.Entities.AddAsync(actorRepresentation);
-        await _context.SaveChangesAsync();
-        actors.Add(guid, actorRepresentation);
+        try
+        {
+            await _context.Entities.AddAsync(actorRepresentation);
+            await _context.SaveChangesAsync();
+            actors.Add(guid, actorRepresentation);
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            Console.WriteLine(ex);
+            ex.Entries.Single().Reload();
+            //await _context.SaveChangesAsync();
+        }
+        catch(InvalidOperationException ex)
+        {
+            Console.WriteLine(ex);
+        }
     }
     public async Task MoveFlies()
     {
@@ -195,7 +236,7 @@ public class MapService
     }
     public async Task AddFly()
     {
-        if(GetFoesNumber() >= MAX_NUMBER_OF_FOES)
+        if (GetFoesNumber() >= MAX_NUMBER_OF_FOES)
         {
             return;
         }

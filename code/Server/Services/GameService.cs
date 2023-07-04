@@ -1,6 +1,5 @@
 ﻿using System.Timers;
 using KillTheFly.Shared;
-
 using Timer = System.Timers.Timer;
 
 namespace KillTheFly.Server.Services;
@@ -40,6 +39,7 @@ public class GameService
 
     public async Task MovePLayer(string playerGuid, Directions? direction = null)
     {
+
         await AddPlayer(playerGuid);
         if (direction.HasValue)
         {
@@ -49,7 +49,14 @@ public class GameService
 
     private async Task ExecuteMove(string playerGuid, Directions direction)
     {
-        await mapService.MoveEntity(playerGuid, direction);
+        try
+        {
+            await mapService.MoveEntity(playerGuid, direction);
+        }
+        catch (InvalidOperationException ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
     }
 
     private async Task AddPlayer(string playerGuid)
@@ -77,7 +84,14 @@ public class GameService
         GameTime++;
         if (GameTime % 3 == 0)
         {
-            await mapService.MoveFlies();
+            try
+            {
+                await mapService.MoveFlies();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
         }
         if (GameTime % 50 == 0)
         {

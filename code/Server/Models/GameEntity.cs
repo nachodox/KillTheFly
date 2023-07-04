@@ -19,9 +19,11 @@ public class GameEntity
     public string? GuidClient { get; set; } = null;
 
     [Required]
+    [ConcurrencyCheck]
     public int X { get; set; }
     
     [Required]
+    [ConcurrencyCheck]
     public int Y { get; set; }
     
     [Required]
