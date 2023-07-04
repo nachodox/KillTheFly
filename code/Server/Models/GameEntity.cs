@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
@@ -32,6 +33,7 @@ public class GameEntity
     public char Avatar { get; set; }
 
     [Column(TypeName = "timestamp without time zone")]
+    [DefaultValue(typeof(DateTime), "")]
     [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
     public DateTime CreationDate { get; set; }
 

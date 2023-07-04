@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace KillTheFly.Server.Models;
@@ -13,6 +14,7 @@ public class Movement
     public Shared.Directions Direction { get; set; }
 
     [Column(TypeName = "timestamp without time zone")]
+    [DefaultValue(typeof(DateTime), "")]
     [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
     public DateTime Timestamp { get; set; }
 

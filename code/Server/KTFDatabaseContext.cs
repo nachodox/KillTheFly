@@ -27,6 +27,18 @@ public class KTFDatabaseContext : DbContext
         modelBuilder.Entity<Access>()
             .HasOne(access => access.Entity)
             .WithMany(entity => entity.Accesses);
+        modelBuilder.Entity<GameEntity>()
+            .Property(e => e.CreationDate)
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
+        modelBuilder.Entity<Movement>()
+            .Property(e => e.Timestamp)
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
+        modelBuilder.Entity<Kill>()
+            .Property(e => e.Timestamp)
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
+        modelBuilder.Entity<Access>()
+            .Property(e => e.Timestamp)
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
         //modelBuilder.Entity<GameEntity>()
         //    .Property(e => e.CreationDate)
         //    .HasColumnType("timestamp without time zone");

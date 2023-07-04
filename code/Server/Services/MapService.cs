@@ -120,12 +120,18 @@ public class MapService
         return actors.Count(actor => !actor.Value.IsPlayer);
     }
     public int GetTotalKills() => kills.Count;
-    public int GetPlayerScore(string guidClient) => 
-        actors[guidClient].Movements.Where(movement => movement.Kill is not null).Count();
+    public int GetPlayerScore(string guidClient) 
+    {
+        if(!actors.ContainsKey(guidClient))
+        {
+            return 0;
+        }
+        return actors[guidClient].Movements.Where(movement => movement.Kill is not null).Count();
+    }
     
     public IEnumerable<GameEntity> GetPlayerMap(string guidClient)
     {
-        if(!actors.Keys.Contains(guidClient))
+        if(!actors.ContainsKey(guidClient))
         {
             return new List<GameEntity>();
         }
@@ -172,11 +178,8 @@ public class MapService
             GuidClient = guid,
             IsPlayer = isPlayer
         };
-        if(isPlayer)
-        {
-            await _context.Entities.AddAsync(actorRepresentation);
-            await _context.SaveChangesAsync();
-        }
+        await _context.Entities.AddAsync(actorRepresentation);
+        await _context.SaveChangesAsync();
         actors.Add(guid, actorRepresentation);
     }
     public async Task MoveFlies()
