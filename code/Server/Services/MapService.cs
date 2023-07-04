@@ -189,18 +189,18 @@ public class MapService
             await MoveEntity(fly.Guid, (Directions)Random.Shared.Next(0, 8));
         }
     }
-    public void AddFly()
+    public async Task AddFly()
     {
         if(GetFoesNumber() >= MAX_NUMBER_OF_FOES)
         {
             return;
         }
-        AddActor(Guid.NewGuid().ToString(), 'Z', false);
+        await AddActor(Guid.NewGuid().ToString(), 'Z', false);
     }
 
-    public void AddPlayer(string guid)
+    public async Task AddPlayer(string guid)
     {
-        AddActor(guid, (actors.Count(actor => actor.Value.IsPlayer) + 1).ToString().FirstOrDefault(), true);
+        await AddActor(guid, (actors.Count(actor => actor.Value.IsPlayer) + 1).ToString().FirstOrDefault(), true);
     }
     private (int X, int Y) GetRandomEmptyPoint()
     {

@@ -35,13 +35,12 @@ public class GameService
         timer = new Timer(TIC_MILISECONDS);
         timer.Elapsed += Timer_Elapsed;
         mapService = new MapService(context);
-        Enumerable.Range(0,4).ToList().ForEach(_ => mapService.AddFly());
     }
 
 
     public async Task MovePLayer(string playerGuid, Directions? direction = null)
     {
-        AddPlayer(playerGuid);
+        await AddPlayer(playerGuid);
         if (direction.HasValue)
         {
             await ExecuteMove(playerGuid, direction.Value);
@@ -53,13 +52,13 @@ public class GameService
         await mapService.MoveEntity(playerGuid, direction);
     }
 
-    private void AddPlayer(string playerGuid)
+    private async Task AddPlayer(string playerGuid)
     {
         if (!timer.Enabled)
         {
             Start();
         }
-        mapService.AddPlayer(playerGuid);
+        await mapService.AddPlayer(playerGuid);
     }
 
     private void Start()
@@ -73,16 +72,16 @@ public class GameService
         timer.Start();
     }
 
-    private void Timer_Elapsed(object? sender, ElapsedEventArgs e)
+    private async void Timer_Elapsed(object? sender, ElapsedEventArgs e)
     {
         GameTime++;
         if (GameTime % 3 == 0)
         {
-            mapService.MoveFlies();
+            await mapService.MoveFlies();
         }
         if (GameTime % 50 == 0)
         {
-            mapService.AddFly();
+            await mapService.AddFly();
         }
         if(GameTime % 1000 == 0)
         {
