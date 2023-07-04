@@ -26,7 +26,7 @@ public class GameService
         };
         return new GameSnapshot
         {
-            Map = mapService.GetPlayerMap(playerGuid),
+            Map = mapService.GetPlayerMap(playerGuid).Select(entity => entity.ToShared()),
             Board = scoreBoard
         };
     }
@@ -85,7 +85,7 @@ public class GameService
         }
         if(GameTime % 1000 == 0)
         {
-            mapService.DropOffline();
+            //mapService.DropOffline();
         }
     }
 }

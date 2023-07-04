@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using KillTheFly.Shared;
+using KillTheFly.Server.Models;
 
 public class KTFDatabaseContext : DbContext
 {
@@ -15,25 +15,30 @@ public class KTFDatabaseContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
         // Configure your entity mappings here if needed
-        modelBuilder.Entity<GameEntity>()
-            .HasKey(entity => entity.Guid);
-        modelBuilder.Entity<GameEntity>()
-            .Property(e => e.CreationDate)
-            .HasColumnType("timestamp without time zone");
-        modelBuilder.Entity<GameEntity>()
-            .Property(e => e.LastAccess)
-            .HasColumnType("timestamp without time zone");
         modelBuilder.Entity<Movement>()
-            .HasKey(entity => entity.Guid);
-        modelBuilder.Entity<Movement>()
-            .Property(e => e.MoveDate)
-            .HasColumnType("timestamp without time zone");
+            .HasOne(movement => movement.Entity)
+            .WithMany(entity => entity.Movements);
         modelBuilder.Entity<Kill>()
-            .Ignore(kill => kill.KillerMovement)
-            .HasKey(entity => entity.Guid);
+            .HasOne(kill => kill.KillerMovement)
+            .WithOne(movement => movement.Kill);
         modelBuilder.Entity<Kill>()
-            .Property(e => e.EventDate)
-            .HasColumnType("timestamp without time zone");
+            .HasOne(kill => kill.Victim)
+            .WithOne(victim => victim.Kill);
+        modelBuilder.Entity<Access>()
+            .HasOne(access => access.Entity)
+            .WithMany(entity => entity.Accesses);
+        //modelBuilder.Entity<GameEntity>()
+        //    .Property(e => e.CreationDate)
+        //    .HasColumnType("timestamp without time zone");
+        //modelBuilder.Entity<Access>()
+        //    .Property(e => e.Timestamp)
+        //    .HasColumnType("timestamp without time zone");
+        //modelBuilder.Entity<Movement>()
+        //    .Property(e => e.Timestamp)
+        //    .HasColumnType("timestamp without time zone");
+        //modelBuilder.Entity<Kill>()
+        //    .Property(e => e.Timestamp)
+        //    .HasColumnType("timestamp without time zone");
 
     }
 }

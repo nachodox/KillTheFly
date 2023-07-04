@@ -10,16 +10,12 @@ namespace KillTheFly.Shared
     {
         public string Guid { get; set; } = string.Empty;
         public GameEntity Victim { get; set; }
-        public DateTime EventDate { get; set; }
+        public DateTime Timestamp { get; set; }
         public Movement KillerMovement{ get; set; }
-        public Kill()
-        {
-            
-        }
         public Kill(GameEntity victim, Movement killerMovement)
         {
             Victim = victim;
-            EventDate = DateTime.Now;
+            Timestamp = DateTime.Now;
             KillerMovement = killerMovement;
         }
     }
