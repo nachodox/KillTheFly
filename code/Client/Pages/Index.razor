@@ -14,6 +14,10 @@
 else
 {
     <ScoreTray Board=@Snapshot.Board/>
+    @if(TutorialMovements < 20)
+    {
+        <center>Busca y mata moscas!</center>
+    }
     <div class="grid-container">
         @for(int i = 0; i < Snapshot.Map.Count(); i++)
         {
@@ -30,24 +34,39 @@ else
                 {
                     var className = $"{Directions.Center} something" + (IsAnimating ? $" animate-{LastDirection}": "");
                     <img class="@className" src="fly-swatter-icon.png" />
-                }
-                @switch(representation.Avatar)
+		        }
+                else
                 {
-                    case 'Z':
-                        <img class="something" src="fly-icon.png"/>
-                        break;
-                    case 'D':
-                        <img class="something"  src="dead-fly-icon.png"/>
-                        break;
-                    case 'F':
-                        <p/>
-                        break;
-                    case 'W':
-                        <div class="map-wall"/>
-                        break;
-                    default:
-                        <img class="something" src="fly-swatter-icon.png" />
-                        break;
+
+                    @switch(representation.Avatar)
+                    {
+                        case 'Z':
+                            <img class="something" src="fly-icon.png" />
+                            break;
+                        case 'D':
+                            <img class="something"  src="dead-fly-icon.png" />
+                            break;
+                        case 'F':
+                            <p/>
+                            break;
+                        case 'W':
+                            <div class="map-wall"/>
+                            break;
+                        default:
+                            <img class="something" src="fly-swatter-icon.png" />
+                            break;
+                    }
+                    @if(TutorialMovements < 20)
+                    {
+                        @switch(representation.Avatar)
+		                {
+			                case 'W':
+				                break;
+			                default:
+                                <img class=@($"tutorial-overlay tutorial-opacity-{5-TutorialMovements/4}") src=@($"tutorial/arrow-{i}.png") />
+				                break;
+		                }
+                    }
                 }
             </div>
         }
@@ -58,6 +77,7 @@ else
 
 @code {
     const string PLAYER_GUID_STORAGE_KEY = "PlayerGuid";
+    const string TUTORIAL_MOVEMENTS_STORAGE_KEY = "TutorialMovements";
     [Parameter]
     public string? PlayerGuid { get; set; }
     [Parameter]
@@ -67,6 +87,7 @@ else
     private bool IsLoading {get; set;} = true;
     private bool IsAnimating {get; set;} = false;
     private Directions LastDirection {get; set;} = Directions.Center;
+    private int TutorialMovements { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -78,6 +99,10 @@ else
         {
             PlayerGuid = Guid.NewGuid().ToString();
             await _localstorage.SetItemAsStringAsync(PLAYER_GUID_STORAGE_KEY, PlayerGuid);
+        }
+        if(await _localstorage.ContainKeyAsync(TUTORIAL_MOVEMENTS_STORAGE_KEY))
+        {
+            TutorialMovements = int.Parse(await _localstorage.GetItemAsStringAsync(TUTORIAL_MOVEMENTS_STORAGE_KEY));
         }
 
         await Http.PostAsJsonAsync<object>($"Game/Register/{PlayerGuid}", new { });
@@ -104,6 +129,10 @@ else
         LastDirection = direction;
         await PlaySound(direction);
         await Http.PostAsJsonAsync<object>($"Game/Move/{PlayerGuid}/{direction}", new { });
+        if(TutorialMovements < 20)
+        {
+            await _localstorage.SetItemAsStringAsync(TUTORIAL_MOVEMENTS_STORAGE_KEY, (++TutorialMovements).ToString());
+        }
         await RefreshSnapshot();
     }
 

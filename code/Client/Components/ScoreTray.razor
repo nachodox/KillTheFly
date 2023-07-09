@@ -1,11 +1,11 @@
 
-<div class="score-tray">
-    @if(Board is null)
-    {
-        <p>No scores available</p>
-    }
-    else
-    {
+@if(Board is null)
+{
+    <center>No scores available</center>
+}
+else
+{
+    <div class="score-tray">
         <div class="score-icon">
             <image src="dead-fly-icon.png" width="30" height="30" />
         </div>
@@ -24,8 +24,8 @@
         <div class="score-icon">
             @Board.TotalKills
         </div>
-    }
-</div>
+    </div>
+}
     
 
 @code {
