@@ -18,18 +18,22 @@ public class MapService
     public MapService(KTFDatabaseContext context)
     {
         _context = context;
-        actors = new Dictionary<string, GameEntity>();
-        foreach(var entity in _context.Entities.ToArray())
-        {
-            if(entity.GuidClient is not null)
-            {
-                actors.Add(entity.GuidClient, entity);
-            }
-        }
         kills = new List<Kill>();
         foreach(var kill in _context.Kills.ToArray())
         {
             kills.Add(kill);
+        }
+        actors = new Dictionary<string, GameEntity>();
+        foreach(var entity in _context.Entities.ToArray())
+        {
+            if(kills.Any(kill => kill.Victim.Guid == entity.Guid))
+            {
+                continue;
+            }
+            if(entity.GuidClient is not null)
+            {
+                actors.Add(entity.GuidClient, entity);
+            }
         }
         movements = new List<Movement>();
         foreach(var movement in _context.Movements.ToArray())
