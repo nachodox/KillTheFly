@@ -26,14 +26,14 @@ public class ImageController : ControllerBase
     }
 
     [HttpPost("Map")]
-    public async Task<ActionResult> MoveAsync([FromBody] string map, [FromBody] string imageBase64, [FromBody] int locationX, [FromBody] int locationY)
+    public async Task<ActionResult> MoveAsync([FromBody] dynamic body)
     {
         await _context.ImageTiles.AddAsync(new Models.ImageTile
         {
-            ImageBase64 = imageBase64,
-            LocationX = locationX,
-            LocationY = locationY,
-            Map = map,
+            ImageBase64 = body.imageBase64,
+            LocationX = body.locationX,
+            LocationY = body.locationY,
+            Map = body.map,
         });
         await _context.SaveChangesAsync();
         return Ok();
