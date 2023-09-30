@@ -6,6 +6,7 @@ public class KTFDatabaseContext : DbContext
     public DbSet<GameEntity> Entities { get; set; }
     public DbSet<Movement> Movements { get; set; }
     public DbSet<Kill> Kills { get; set; }
+    public DbSet<ImageTile> ImageTiles { get; set; }
 
     public KTFDatabaseContext(DbContextOptions<KTFDatabaseContext> options) : base(options)
     {
