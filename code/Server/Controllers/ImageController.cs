@@ -35,6 +35,7 @@ public class ImageController : ControllerBase
             LocationY = locationY,
             Map = map,
         });
+        await _context.SaveChangesAsync();
         return Ok();
     }
 
