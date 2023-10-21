@@ -18,8 +18,16 @@ public class ImageController : ControllerBase
         _context = context;
     }
 
+    [HttpGet("Static/{x}/{y}")]
+    public ActionResult KillTheFlyImage(string x, string y)
+    {
+        var image = ImageHelper.GetImage($"{x}-{y}");
+        return Ok(image);
+    }
+
+
     [HttpGet("Map/{mapId}")]
-    public async Task<ActionResult> Register(string map)
+    public async Task<ActionResult> GetImages(string map)
     {
         var images = await _context.ImageTiles.Where(image => image.Map == map).Select(image => image.ToShared()).ToListAsync();
         return Ok(images);
