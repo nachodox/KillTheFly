@@ -20,16 +20,16 @@ public class Movement
 
     //[ForeignKey(nameof(GameEntity))]
     public required GameEntity Entity { get; set; }
-        
+
     [Required]
     public int StartX { get; set; }
-        
+
     [Required]
     public int StartY { get; set; }
-        
+
     [Required]
     public int EndX { get; set; }
-        
+
     [Required]
     public int EndY { get; set; }
 

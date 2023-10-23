@@ -5,7 +5,13 @@
 @inject IJSRuntime JSRuntime
 
 <PageTitle>Matamosca 💩</PageTitle>
-<img class="banner-photo" src="banner.png"/>
+<img class="banner-photo" src="@ImageHelper.BannerImage" />
+
+<select @bind="selectedItem">
+    <option value="marcagol">marcagol</option>
+    <option value="matamosca">matamosca</option>
+    <option value="pandillero">pandillero</option>
+</select>
 
 @if(Snapshot is null)
 {
@@ -27,14 +33,14 @@ else
             var style = "background-size: cover;";
             if (representation.Avatar != 'W')
             {
-                var base64String = $"""data:image/png;base64,{ImageHelper.GetImage($"{representation.X}-{representation.Y}")}""";
+                var base64String = $"""data:image/png;base64,{ImageHelper.GetImageSync(@selectedItem, $"{representation.X}-{representation.Y}")}""";
                 style += $"background-image: url({base64String});";
             }
             <div class="grid-item" id="display" style="@style" @onclick="() => Move(direction)">
                 @if(i == 4)
                 {
                     var className = $"{Directions.Center} something" + (IsAnimating ? $" animate-{LastDirection}": "");
-                    <img class="@className" src="fly-swatter-icon.png" />
+                    <img class="@className" src="@ImageHelper.CharacterImage" />
 		        }
                 else
                 {
@@ -42,10 +48,10 @@ else
                     @switch(representation.Avatar)
                     {
                         case 'Z':
-                            <img class="something" src="fly-icon.png" />
+                            <img class="something" src="@ImageHelper.FoeImage" />
                             break;
                         case 'D':
-                            <img class="something"  src="dead-fly-icon.png" />
+                            <img class="something"  src="@ImageHelper.KillImage" />
                             break;
                         case 'F':
                             <p/>
@@ -54,7 +60,7 @@ else
                             <div class="map-wall"/>
                             break;
                         default:
-                            <img class="something" src="fly-swatter-icon.png" />
+                            <img class="something" src="@ImageHelper.CharacterImage" />
                             break;
                     }
                     @if(TutorialMovements < 20)
@@ -89,6 +95,7 @@ else
     private bool IsAnimating {get; set;} = false;
     private Directions LastDirection {get; set;} = Directions.Center;
     private int TutorialMovements { get; set; }
+    private string selectedItem = "marcagol";
 
     protected override async Task OnInitializedAsync()
     {
@@ -110,9 +117,14 @@ else
         timer = new System.Timers.Timer(1200);
         timer.Elapsed += UpdateMap;
         timer.Start();
+        await RefreshSnapshot();
     }
     private async Task RefreshSnapshot()
     {
+        if (!ImageHelper.ImagesLoaded(selectedItem))
+        {
+            await ImageHelper.PopulateFromLocalStorageAll(Http, _localstorage, selectedItem);
+        }
         Snapshot = await Http.GetFromJsonAsync<GameSnapshot>($"Game/Map/{PlayerGuid}");
         IsLoading = false;
         IsAnimating = false;
@@ -139,7 +151,8 @@ else
 
     public async void UpdateMap(object? sender, ElapsedEventArgs e)
     {
-        await RefreshSnapshot();
+        await Task.Run(() => { });
+        // await RefreshSnapshot();
     }
 
     private async Task PlaySound(Directions direction)

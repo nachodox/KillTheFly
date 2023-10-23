@@ -24,7 +24,8 @@ public class MapService
             kills.Add(kill);
         }
         actors = new Dictionary<string, GameEntity>();
-        foreach(var entity in _context.Entities.ToArray())
+        var entities = _context.Entities.ToArray();
+        foreach (var entity in entities)
         {
             if(kills.Any(kill => kill.Victim.Guid == entity.Guid))
             {

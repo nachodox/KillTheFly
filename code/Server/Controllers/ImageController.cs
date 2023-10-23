@@ -18,30 +18,35 @@ public class ImageController : ControllerBase
         _context = context;
     }
 
-    [HttpGet("Static/{x}/{y}")]
-    public ActionResult KillTheFlyImage(string x, string y)
+    [HttpGet("Map/{mapId}/{hash}")]
+    public async Task<ActionResult> GetImage(string mapId, string hash)
     {
-        var image = ImageHelper.GetImage($"{x}-{y}");
-        return Ok(image);
+        var x = int.Parse(hash.Split('-')[0]);
+        var y = int.Parse(hash.Split('-')[1]);
+        var img = await _context.ImageTiles
+            .Where(image => image.Map == mapId && image.LocationX == x && image.LocationY == y)
+            .Select(image => image.ToShared()).FirstOrDefaultAsync();
+        return Ok(img);
     }
 
-
     [HttpGet("Map/{mapId}")]
-    public async Task<ActionResult> GetImages(string map)
+    public async Task<ActionResult> GetImages(string mapId)
     {
-        var images = await _context.ImageTiles.Where(image => image.Map == map).Select(image => image.ToShared()).ToListAsync();
+        var images = await _context.ImageTiles.Where(image => image.Map == mapId).Select(image => image.ToShared()).ToListAsync();
         return Ok(images);
     }
 
+
     [HttpPost("Map")]
-    public async Task<ActionResult> MoveAsync([FromBody] dynamic body)
+    public async Task<ActionResult> CreateTile([FromBody]CreateTileDto body)
     {
         await _context.ImageTiles.AddAsync(new Models.ImageTile
         {
-            ImageBase64 = body.imageBase64,
-            LocationX = body.locationX,
-            LocationY = body.locationY,
-            Map = body.map,
+            ImageBase64 = body.ImageBase64,
+            LocationX = body.LocationX,
+            LocationY = body.LocationY,
+            Map = body.Map,
+            Timestamp = DateTime.Now
         });
         await _context.SaveChangesAsync();
         return Ok();

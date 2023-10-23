@@ -25,8 +25,6 @@ public class ImageTile
 
 
     [Column(TypeName = "timestamp without time zone")]
-    [DefaultValue(typeof(DateTime), "")]
-    [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
     public DateTime Timestamp { get; set; }
 
     internal virtual Shared.ImageTile ToShared() => new()
