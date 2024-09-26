@@ -1,0 +1,34 @@
+
+@if(Board is null)
+{
+    <center>No scores available</center>
+}
+else
+{
+    <div class="score-tray">
+        <div class="score-icon">
+            <img src="@ImageHelper.KillImage" width="30" height="30" />
+        </div>
+        <div class="score-icon">
+            @Board.Score
+        </div>
+        <div class="score-icon">
+            <img src="@ImageHelper.FoeImage" width="30" height="30" />
+        </div>
+        <div class="score-icon">
+            @Board.Foes
+        </div>
+        <div class="score-icon">
+            <img src="@ImageHelper.LogoImage" width="30" height="30" />
+        </div>
+        <div class="score-icon">
+            @Board.TotalKills
+        </div>
+    </div>
+}
+    
+
+@code {
+    [Parameter]
+    public ScoreBoard? Board {get; set;}
+}
